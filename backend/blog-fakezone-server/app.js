@@ -5,8 +5,8 @@ const rotaUsuario = require("./rotas/usuarios");
 const app = express()
 app.use(express.json()) 
 
-app.use('/postagens', rotaPostagem)
-app.use('/usuarios', rotaUsuario);
+app.use('/api/postagens', rotaPostagem)
+app.use('/api/usuarios', rotaUsuario);
 const port = 8000
 
 app.listen(port, () => {

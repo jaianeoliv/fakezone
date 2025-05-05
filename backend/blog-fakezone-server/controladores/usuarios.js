@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 
 const { insereUsuario, getUsuarioPorUsername, getUsuarioPorEmail } = require('../servicos/usuarios');
 
-const JWT_SECRET = "secretdoseublog";  // Altere isso para um segredo mais seguro em produção
+const JWT_SECRET = "dangerunzonerun";  
 
 function postCadastroUsuario(req, res) {
   const { nome_exibicao, username, email, senha, biografia, imagem, data_nascimento } = req.body;
