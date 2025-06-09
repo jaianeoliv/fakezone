@@ -1,9 +1,10 @@
-import React from "react";
-import styled from "styled-components";
-import Danger from "../Assets/danger.png";
+  import React from "react";
+  import styled from "styled-components";
+  import Danger from "../Assets/danger.png";
 
 const Sobre = () => {
   return (
+    <PageWrapper>
     <Container>
     
       <MainContent>
@@ -62,11 +63,22 @@ const Sobre = () => {
         </SideContent>
       </MainContent>
     </Container>
+    </PageWrapper>
   );
 };
 
+const PageWrapper = styled.div`
+  background: linear-gradient(135deg, #d4d4ff, #f0e0ff);
+  min-height: 100vh;
+  padding: 40px 20px;
+  font-family: 'Press Start 2P', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
 
 const Container = styled.div`
+
   max-width: 1000px;
   margin: 40px auto;
 `;

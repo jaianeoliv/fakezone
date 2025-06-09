@@ -1,26 +1,23 @@
 import styled from "styled-components";
-import Logo from '../Logo';
-import NavBar from "../NavBar";
-import IconesNavBar from "../IconesNavBar";
-import Pesquisa from "../Pesquisa";
-
+import logo from '../../Assets/logo-v2.png'
 
 
 function Header({ onSearch }) {
     return (
         <HeaderContainer>
-            <Icons>
-                <Pesquisa onSearch={onSearch} />
-                <IconesNavBar />
-            </Icons>
-            <Logo />
-            <NavBar />
-
+            <LogoImg
+                src={logo}
+                alt='logo'
+            />
         </HeaderContainer>
     )
 }
 
+const LogoImg = styled.img`
+    height: 160px;
+    width: 160px;
 
+`
 
 const HeaderContainer = styled.header`
     display: flex;
@@ -30,14 +27,7 @@ const HeaderContainer = styled.header`
     
 `;
 
-const Icons = styled.div`
-    display: flex;
-    align-content: center;
-    justify-content: flex-end;
-    margin: 15px 120px 0 0;
-    width: 100vw;
-    
-`
+
 
 
 

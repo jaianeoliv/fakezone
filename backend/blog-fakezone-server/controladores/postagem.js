@@ -30,15 +30,17 @@ function getPostagem(req, res) {
 }
 
 function postPostagem(req, res) {
-    const postagemNova = req.body;
-    inserePostagem(postagemNova, (err, novaPostagem) => {
-        if (err) {
-            res.status(500).send("Erro ao criar postagem");
-        } else {
-            res.status(201).json(novaPostagem);
-        }
-    });
+  const postagemNova = req.body;
+  inserePostagem(postagemNova, (err, novaPostagem) => {
+    if (err) {
+      console.error("Erro ao inserir postagem:", err);  // mostra o erro no terminal
+      res.status(500).send("Erro ao criar postagem");
+    } else {
+      res.status(201).json(novaPostagem);
+    }
+  });
 }
+
 
 function patchPostagem(req, res) {
     const id = req.params.id;

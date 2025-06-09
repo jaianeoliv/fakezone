@@ -1,4 +1,5 @@
 const db = require("./db");
+const mysql = require("mysql2");
 
 
 function getTodasPostagens(callback) {
@@ -14,14 +15,16 @@ function getPostagemPorId(id, callback) {
     });
 }
 
-
 function inserePostagem(postagemNova, callback) {
-    const { titulo, conteudo, post_imagem, categorias_id, usuarios_id, moods_id } = postagemNova;
-    const sql = "INSERT INTO posts (titulo, conteudo, post_imagem, categorias_id, usuarios_id, moods_id) VALUES (?, ?, ?, ?, ?, ?)";
+  const { titulo, conteudo, post_imagem, categorias_id, usuarios_id, moods_id } = postagemNova;
+  const sql = "INSERT INTO posts (titulo, conteudo, post_imagem, categorias_id, usuarios_id, moods_id) VALUES (?, ?, ?, ?, ?, ?)";
 
-    db.query(sql, [titulo, conteudo, post_imagem, categorias_id, usuarios_id, moods_id], (err, result) => {
-        callback(err, { id: result.insertId, ...postagemNova });
-    });
+  db.query(sql, [titulo, conteudo, post_imagem, categorias_id, usuarios_id, moods_id], (err, result) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, { id: result.insertId, ...postagemNova });
+  });
 }
 
 

@@ -1,29 +1,39 @@
 import React from "react";
 import styled from "styled-components";
 import cover from "../../Assets/selfparking-v3.png";
-import { XPButton } from '../XPButton';
+import { useNavigate } from 'react-router-dom';
 import xpwindows from '../../Assets/xpwindows.jpg';
-
-
+import { useAuth } from '../../Contexts/AuthContext';
 
 const HeadMain = () => {
-    return (
-        <HeadContainer>
-            <Content>
-                <TitleBar>
-                    Bem-vindo à nave
-                </TitleBar>
-                <InnerContent>
-                    <h1>Olá Terráqueos</h1>
-                    <p>Explore e compartilhe ideias incríveis!</p>
-                    <XPButton>Entrar</XPButton>
-                </InnerContent>
-            </Content>
-            
-            <Image src={cover} alt="Imagem da página principal" />
-        </HeadContainer>
-    );
-}
+  const navigate = useNavigate();
+  const { usuario } = useAuth();
+
+  const handleClick = () => {
+    if (usuario) {
+      navigate('/postagens'); // página para criar/desabafo do dia
+    } else {
+      navigate('/entrar');
+    }
+  };
+
+  return (
+    <HeadContainer>
+      <Content>
+        <TitleBar>Bem-vindo à nave</TitleBar>
+        <InnerContent>
+          <h1>Olá Terráqueos</h1>
+          <p>Explore e compartilhe ideias incríveis!</p>
+          <XPButton onClick={handleClick}>
+            {usuario ? 'Desabafo do Dia' : 'Entrar'}
+          </XPButton>
+        </InnerContent>
+      </Content>
+
+      <Image src={cover} alt="Imagem da página principal" />
+    </HeadContainer>
+  );
+};
 const HeadContainer = styled.section`
   position: relative;
   display: flex;
@@ -102,7 +112,7 @@ const Content = styled.div`
 `;
 
 const TitleBar = styled.div`
-  background: #1700d1;
+  background: #0a246a;
   color: white;
   padding: 8px 12px;
   font-size: 14px;
@@ -115,6 +125,17 @@ const TitleBar = styled.div`
 const InnerContent = styled.div`
   padding: 16px;
 
+  button {
+      padding: 5px;
+      border: 2px solid #000;
+      background-color: #c0c0c0;
+      cursor: pointer;
+      font-family: 'Press Start 2P', monospace;
+
+      &:hover {
+        background-color: #a0a0a0;
+      }
+
   h1 {
     font-size: 22px;
     margin-bottom: 10px;
@@ -125,6 +146,28 @@ const InnerContent = styled.div`
   }
 `;
 
+const XPButton = styled.button`
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  background: linear-gradient(to bottom, #dfdfdf, #bfbfbf);
+  border: 2px solid #000;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  border-bottom-color: #808080;
+  border-right-color: #808080;
+  padding: 8px 12px;
+  cursor: pointer;
+  box-shadow: inset -1px -1px 0 #000, inset 1px 1px 0 #fff;
+
+  &:hover {
+    background: linear-gradient(to bottom, #bfbfbf, #dfdfdf);
+  }
+
+  &:active {
+    box-shadow: inset 1px 1px 0 #000, inset -1px -1px 0 #fff;
+    background: #a0a0a0;
+  }
+`;
 
 
 
