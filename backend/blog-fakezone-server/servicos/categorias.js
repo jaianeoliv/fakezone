@@ -1,10 +1,10 @@
 const db = require("./db");
 
-function getTodasCategorias(callback) {
-  const sql = "SELECT id, nome FROM categorias";
-  db.query(sql, callback);
+async function getTodasCategorias() {
+  const [rows] = await db.execute('SELECT * FROM categorias');
+  return rows;
 }
 
 module.exports = {
-  getTodasCategorias,
+  getTodasCategorias
 };

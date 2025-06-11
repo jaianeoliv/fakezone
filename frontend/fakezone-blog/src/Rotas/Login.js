@@ -13,21 +13,22 @@ function Login() {
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState(null);
 
-const { login } = useAuth(); // não esquece importar/useAuth
+const { login } = useAuth();
 
 const handleLogin = async (e) => {
+ console.log('handleLogin iniciou');
   e.preventDefault();
   setErro(null);
   try {
     const response = await axios.post('http://localhost:8000/api/usuarios/login', {
       username,
       senha,
+      
     });
 
-    // Atualiza o contexto global com usuário e token
+ console.log('Resposta do login:', response.data);
     login(response.data.usuario, response.data.token);
-
-    // redireciona depois de logar
+  
     navigate('/');
   } catch (err) {
     console.error('Erro ao fazer login:', err.response?.data || err.message);

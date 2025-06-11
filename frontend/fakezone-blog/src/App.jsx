@@ -8,7 +8,7 @@
   import Login from './Rotas/Login';
   import Cadastro from './Rotas/Cadastro';
   import Perfil from './Rotas/Perfil';
-  import Teste from './Pages/Teste';
+
   import LayoutComum from './Componentes/LayoutComum';
   import { AuthProvider } from './Contexts/AuthContext';
 
@@ -30,7 +30,6 @@
             <Route path="/ideias" element={<Ideias />} />
             <Route path="/sobre" element={<Sobre />} />
             <Route path="/perfil" element={<Perfil />} />
-            <Route path="/teste" element={<Teste/>} />
           </Route>
         </Routes>
       </BrowserRouter>

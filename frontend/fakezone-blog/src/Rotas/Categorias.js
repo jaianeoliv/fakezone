@@ -1,23 +1,20 @@
-import React, { useState } from "react";
 import styled from "styled-components";
 
-function Categorias({ onCategoriaClick, onCriarClick }) {
-  const categorias = [
-    "Inspiração", "Leituras", "Games", "Filmes", "Séries", "Animes",
-    "Mangás", "Reflexões", "Ideias Soltas", "Criatividade", "DevLogs", "Random", "Pessoal"
-  ];
+function Categorias({ categorias, onCategoriaClick, onCriarClick })
+ {
+  
 
   return (
-    <XPWindow>
+      <XPWindow>
       <TitleBar>
         <h2>Criar uma nova postagem</h2>
         <StyledButton onClick={onCriarClick}>Criar Post</StyledButton>
       </TitleBar>
 
       <CategoriaLista>
-        {categorias.map((cat, index) => (
-          <CategoriaBotao key={index} onClick={() => onCategoriaClick(cat)}>
-            {cat}
+        {categorias.map((cat) => (
+          <CategoriaBotao key={cat.id} onClick={() => onCategoriaClick(cat)}>
+            {cat.nome}
           </CategoriaBotao>
         ))}
       </CategoriaLista>

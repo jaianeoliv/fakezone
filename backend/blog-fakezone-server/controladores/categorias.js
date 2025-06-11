@@ -1,14 +1,13 @@
 const { getTodasCategorias } = require("../servicos/categorias");
 
-function listarCategorias(req, res) {
-  getTodasCategorias((err, categorias) => {
-    if (err) {
-      console.error("Erro ao buscar categorias:", err);
-      res.status(500).send("Erro ao buscar categorias");
-    } else {
-      res.json(categorias);
-    }
-  });
+async function listarCategorias(req, res) {
+  try {
+    const categorias = await getTodasCategorias();
+    res.json(categorias);
+  } catch (err) {
+    console.error("Erro ao buscar categorias:", err);
+    res.status(500).send("Erro ao buscar categorias");
+  }
 }
 
 module.exports = {

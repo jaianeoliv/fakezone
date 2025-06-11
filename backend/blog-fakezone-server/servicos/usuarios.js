@@ -1,47 +1,62 @@
-const db = require("./db");
-const mysql = require("mysql2");
+const db = require('./db');
 
-
-function insereUsuario(usuario, callback) {
-  
+async function insereUsuario(usuario) {
   const query = `
-      INSERT INTO usuarios (nome_exibicao, username, email, senha, biografia, imagem, data_nascimento)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `;
-
-  const { nome_exibicao, username, email, senha, biografia, imagem, data_nascimento } = usuario;
-  const imagemParaInserir = imagem || null; // null mesmo
-
-  db.query(query, [nome_exibicao, username, email, senha, biografia, imagemParaInserir, data_nascimento], callback);
-
-}
-
-function atualizarUsuarioPorId(id, dados, callback) {
-  const { nome_exibicao, email, biografia, emoji, imagem, data_nascimento } = dados;
-
-  const sql = `
-    UPDATE usuarios
-    SET nome_exibicao = ?, email = ?, biografia = ?, emoji = ?, imagem = ?, data_nascimento = ?
-    WHERE id = ?
+    INSERT INTO usuarios (nome_exibicao, username, email, senha, biografia, imagem, data_nascimento)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
+  const { nome_exibicao, username, email, senha, biografia, imagem, data_nascimento } = usuario;
+  const imagemParaInserir = imagem || null;
 
-  conexao.query(sql, [nome_exibicao, email, biografia, emoji, imagem, data_nascimento, id], callback);
+  const [result] = await db.query(query, [nome_exibicao, username, email, senha, biografia, imagemParaInserir, data_nascimento]);
+  return result;
 }
 
-
-function getUsuarioPorUsername(username, callback) {
+async function getUsuarioPorUsername(username) {
   const query = "SELECT * FROM usuarios WHERE username = ?";
-  db.query(query, [username], callback);
+  const [rows] = await db.query(query, [username]);
+  return rows;
 }
 
-function getUsuarioPorEmail(email, callback) {
+async function getUsuarioPorEmail(email) {
   const query = "SELECT * FROM usuarios WHERE email = ?";
-  db.query(query, [email], callback);
+  const [rows] = await db.query(query, [email]);
+  return rows;
 }
 
-function getTodosUsuarios(callback) {
+async function getUsuarioPorId(id) {
+  const query = "SELECT * FROM usuarios WHERE id = ?";
+  const [rows] = await db.query(query, [id]);
+  return rows[0];
+}
+
+async function getTodosUsuarios() {
   const query = "SELECT * FROM usuarios";
-  db.query(query, callback);
+  const [rows] = await db.query(query);
+  return rows;
 }
 
-module.exports = { insereUsuario, getUsuarioPorUsername, getUsuarioPorEmail, getTodosUsuarios, atualizarUsuarioPorId };
+async function atualizarUsuarioPorId(id, dadosAtualizados) {
+  const campos = [];
+  const valores = [];
+
+  for (const chave in dadosAtualizados) {
+    campos.push(`${chave} = ?`);
+    valores.push(dadosAtualizados[chave]);
+  }
+
+  const query = `UPDATE usuarios SET ${campos.join(', ')} WHERE id = ?`;
+  valores.push(id);
+
+  const [result] = await db.query(query, valores);
+  return result;
+}
+
+module.exports = {
+  insereUsuario,
+  getUsuarioPorUsername,
+  getUsuarioPorEmail,
+  getUsuarioPorId,
+  getTodosUsuarios,
+  atualizarUsuarioPorId,
+};

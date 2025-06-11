@@ -6,7 +6,7 @@ export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
 
   useEffect(() => {
-    // Carregar dados do localStorage ao montar o componente
+
     const userStorage = localStorage.getItem('usuario');
     if (userStorage) {
       setUsuario(JSON.parse(userStorage));
@@ -22,9 +22,9 @@ export function AuthProvider({ children }) {
   function logout() {
     setUsuario(null);
     localStorage.removeItem('token');
-    localStorage.removeItem('usuario'); // <-- isso aqui é importante
-    localStorage.removeItem('perfilEmoji'); // se estiver usando emojis salvos
-    localStorage.removeItem('perfilBio');   // idem
+    localStorage.removeItem('usuario'); 
+    localStorage.removeItem('perfilEmoji'); 
+    localStorage.removeItem('perfilBio');   
   }
 
   return (

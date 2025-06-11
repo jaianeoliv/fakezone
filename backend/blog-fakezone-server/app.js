@@ -3,6 +3,7 @@ const cors = require('cors');
 const rotaUsuarios = require("./rotas/usuarios");
 const rotaPostagem = require("./rotas/postagem");
 const rotaCategorias = require("./rotas/categorias");
+const rotaMoods = require("./rotas/moods")
 
 const app = express();
 
@@ -13,7 +14,10 @@ app.use(cors({
 
 app.use('/api/usuarios', rotaUsuarios);
 app.use('/api/postagens', rotaPostagem);
-app.use("/api/categorias", rotaCategorias);
+app.use('/api/categorias', rotaCategorias);
+app.use('/api/moods', rotaMoods);
+
+
 
 const port = 8000;
 app.listen(port, () => {

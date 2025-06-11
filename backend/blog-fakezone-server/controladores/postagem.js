@@ -1,20 +1,44 @@
-const { 
-    getTodasPostagens, 
-    getPostagemPorId, 
-    inserePostagem, 
-    atualizaPostagem, 
-    deletaPostagem 
+
+const {
+    
+    getPostagemPorId,
+    inserePostagem,
+    atualizaPostagem,
+    deletaPostagem
 } = require("../servicos/postagem");
 
-function getPostagens(req, res) {
-    getTodasPostagens((err, postagens) => {
-        if (err) {
-            res.status(500).send("Erro ao buscar postagens");
-        } else {
-            res.json(postagens);
-        }
-    });
+const db = require('../servicos/db');
+
+async function getPostagens(req, res) {
+  try {
+    const [rows] = await db.execute(`
+      SELECT 
+        posts.id,
+        posts.titulo,
+        posts.conteudo,
+        posts.usuarios_id,
+        moods.id AS mood_id,
+        moods.emoji,
+        moods.descricao AS descricao_humor,
+        categorias.id AS categoria_id,
+        categorias.nome AS nome_categoria
+      FROM posts
+      JOIN moods ON posts.moods_id = moods.id
+      JOIN categorias ON posts.categorias_id = categorias.id
+    `);
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Erro ao buscar postagens:', error);
+    res.status(500).json({ error: 'Erro ao buscar postagens' });
+  }
 }
+
+
+
+module.exports = { getPostagens };
+
+
 
 function getPostagem(req, res) {
     const id = req.params.id;
@@ -30,22 +54,22 @@ function getPostagem(req, res) {
 }
 
 function postPostagem(req, res) {
-  const postagemNova = req.body;
-  inserePostagem(postagemNova, (err, novaPostagem) => {
-    if (err) {
-      console.error("Erro ao inserir postagem:", err);  // mostra o erro no terminal
-      res.status(500).send("Erro ao criar postagem");
-    } else {
-      res.status(201).json(novaPostagem);
-    }
-  });
+    const postagemNova = req.body;
+    inserePostagem(postagemNova, (err, novaPostagem) => {
+        if (err) {
+            console.error("Erro ao inserir postagem:", err);
+            res.status(500).send("Erro ao criar postagem");
+        } else {
+            res.status(201).json(novaPostagem);
+        }
+    });
 }
 
 
 function patchPostagem(req, res) {
     const id = req.params.id;
     const postagemAtualizada = req.body;
-    
+
     atualizaPostagem(id, postagemAtualizada, (err, sucesso) => {
         if (err) {
             res.status(500).send("Erro ao atualizar postagem");
@@ -59,7 +83,7 @@ function patchPostagem(req, res) {
 
 function deletePostagem(req, res) {
     const id = req.params.id;
-    
+
     deletaPostagem(id, (err, sucesso) => {
         if (err) {
             res.status(500).send("Erro ao deletar postagem");

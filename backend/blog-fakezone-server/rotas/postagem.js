@@ -1,3 +1,4 @@
+const db = require("../servicos/db");
 const { autenticarToken} = require('../middlewares/authMiddleware');
 const { Router } = require("express");
 

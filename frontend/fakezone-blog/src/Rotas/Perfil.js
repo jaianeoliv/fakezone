@@ -26,7 +26,7 @@ const Perfil = () => {
     emoji: localStorage.getItem('perfilEmoji') || usuario?.emoji || '😀',
   }));
 
-  // Sincroniza formData e emoji sempre que usuario mudar (ex: recarregar, login)
+
   useEffect(() => {
     if (usuario) {
       setFormData({
@@ -41,17 +41,17 @@ const Perfil = () => {
     }
   }, [usuario]);
 
-  // Atualiza localStorage sempre que emoji mudar
+  // atualiza localStorage sempre que emoji mudar
   useEffect(() => {
     localStorage.setItem('perfilEmoji', emoji);
   }, [emoji]);
 
-  // Atualiza localStorage sempre que bio mudar
+  // atualiza localStorage sempre que bio mudar
   useEffect(() => {
     localStorage.setItem('perfilBio', formData.bio);
   }, [formData.bio]);
 
-  // Atualiza localStorage sempre que nome_exibicao mudar
+  // atualiza localStorage sempre que nome_exibicao mudar
   useEffect(() => {
     localStorage.setItem('perfilNomeExibicao', formData.nome_exibicao);
   }, [formData.nome_exibicao]);
@@ -77,7 +77,7 @@ const Perfil = () => {
     const file = e.target.files[0];
     if (file) {
       setFotoNome(file);
-      // upload real depois, se quiser
+     
     }
   };
 
@@ -86,15 +86,14 @@ const Perfil = () => {
 
     console.log('Salvando dados:', formData);
 
-    // Atualiza o emoji no estado principal
     setEmoji(formData.emoji);
 
-    // Atualiza localStorage com o nome de exibição, bio e emoji
+    
     localStorage.setItem('perfilNomeExibicao', formData.nome_exibicao);
     localStorage.setItem('perfilBio', formData.bio);
     localStorage.setItem('perfilEmoji', formData.emoji);
 
-    // Atualiza o objeto usuario para refletir mudanças locais
+  
     usuario.biografia = formData.bio;
     usuario.nome_exibicao = formData.nome_exibicao;
     usuario.email = formData.email;
@@ -187,7 +186,7 @@ const Perfil = () => {
 export default Perfil;
 
 
-// ======== STYLED COMPONENTS =========
+
 
 const PerfilContainer = styled.div`
   background: linear-gradient(135deg, #d4d4ff, #f0e0ff);

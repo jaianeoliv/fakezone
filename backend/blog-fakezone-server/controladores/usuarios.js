@@ -7,37 +7,35 @@ const {
   getUsuarioPorEmail,
   getUsuarioPorId,
   getTodosUsuarios,
-  atualizarUsuarioPorId, // <-- vamos criar essa função no seu serviço de usuários
+  atualizarUsuarioPorId,
 } = require('../servicos/usuarios');
-
-const { autenticarToken } = require('../middlewares/authMiddleware');
 
 const JWT_SECRET = "dangerunzonerun";
 
 async function getUsuarios(req, res) {
-  getTodosUsuarios((err, results) => {
-    if (err) return res.status(500).json({ mensagem: "Erro ao buscar usuários.", erro: err });
-    res.json(results);
-  });
+  try {
+    const usuarios = await getTodosUsuarios();
+    res.json(usuarios);
+  } catch (err) {
+    res.status(500).json({ mensagem: "Erro ao buscar usuários.", erro: err.message });
+  }
 }
 
 async function getMeuPerfil(req, res) {
-  getUsuarioPorId(req.usuario.id, (err, result) => {
-    if (err) return res.status(500).json({ mensagem: "Erro ao buscar usuário.", erro: err });
-    if (!result) return res.status(404).json({ mensagem: "Usuário não encontrado." });
-    res.json(result);
-  });
+  try {
+    const usuario = await getUsuarioPorId(req.usuario.id);
+    if (!usuario) return res.status(404).json({ mensagem: "Usuário não encontrado." });
+    res.json(usuario);
+  } catch (err) {
+    res.status(500).json({ mensagem: "Erro ao buscar usuário.", erro: err.message });
+  }
 }
 
-// Nova função para atualizar o perfil do usuário logado
 async function putAtualizarPerfil(req, res) {
-  const usuarioId = req.usuario.id;
-  const { nome_exibicao, email, biografia, emoji, imagem, data_nascimento } = req.body;
-
-  // Aqui você pode adicionar validações básicas (ex: campos obrigatórios, formato de email, etc)
-
   try {
-    // Atualiza usuário no banco
+    const usuarioId = req.usuario.id;
+    const { nome_exibicao, email, biografia, emoji, imagem, data_nascimento } = req.body;
+
     await atualizarUsuarioPorId(usuarioId, {
       nome_exibicao,
       email,
@@ -50,82 +48,70 @@ async function putAtualizarPerfil(req, res) {
     res.json({ mensagem: 'Perfil atualizado com sucesso.' });
   } catch (err) {
     console.error('Erro ao atualizar perfil:', err);
-    res.status(500).json({ mensagem: 'Erro ao atualizar perfil.', erro: err });
+    res.status(500).json({ mensagem: 'Erro ao atualizar perfil.', erro: err.message });
   }
 }
 
 async function postCadastroUsuario(req, res) {
-  const { nome_exibicao, username, email, senha, biografia, imagem, data_nascimento } = req.body;
+  try {
+    const { nome_exibicao, username, email, senha, biografia, imagem, data_nascimento } = req.body;
 
-  if (!nome_exibicao || !username || !email || !senha || !data_nascimento) {
-    return res.status(400).json({ mensagem: 'Campos obrigatórios faltando.' });
+    if (!nome_exibicao || !username || !email || !senha || !data_nascimento) {
+      return res.status(400).json({ mensagem: 'Campos obrigatórios faltando.' });
+    }
+
+    const usuariosComUsername = await getUsuarioPorUsername(username);
+    if (usuariosComUsername.length > 0) return res.status(400).json({ mensagem: "Username já existe." });
+
+    const usuariosComEmail = await getUsuarioPorEmail(email);
+    if (usuariosComEmail.length > 0) return res.status(400).json({ mensagem: "Email já registrado." });
+
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
+    const dataFormatada = new Date(data_nascimento).toISOString().slice(0, 10);
+
+    const usuario = {
+      nome_exibicao,
+      username,
+      email,
+      senha: senhaCriptografada,
+      biografia,
+      imagem: imagem || null,
+      data_nascimento: dataFormatada,
+    };
+
+    await insereUsuario(usuario);
+
+    res.status(201).json({ mensagem: "Usuário criado com sucesso." });
+
+  } catch (err) {
+    console.error('Erro ao criar usuário:', err);
+    res.status(500).json({ mensagem: "Erro ao criar usuário.", erro: err.message });
   }
-
-  getUsuarioPorUsername(username, (err, result) => {
-    if (err) return res.status(500).json({ mensagem: "Erro ao verificar username.", erro: err });
-    if (result.length > 0) return res.status(400).json({ mensagem: "Username já existe." });
-
-    getUsuarioPorEmail(email, (err, result) => {
-      if (err) return res.status(500).json({ mensagem: "Erro ao verificar email.", erro: err });
-      if (result.length > 0) return res.status(400).json({ mensagem: "Email já registrado." });
-
-      bcrypt.hash(senha, 10, (err, senhaCriptografada) => {
-        if (err) return res.status(500).json({ mensagem: "Erro ao criptografar senha.", erro: err });
-
-        const dataFormatada = new Date(data_nascimento).toISOString().slice(0, 10);
-
-        const usuario = {
-          nome_exibicao,
-          username,
-          email,
-          senha: senhaCriptografada,
-          biografia,
-          imagem: imagem || null,
-          data_nascimento: dataFormatada,
-        };
-
-        console.log('Tentando inserir usuário:', usuario);
-
-        insereUsuario(usuario, (err) => {
-          if (err) {
-            console.error('Erro ao criar usuário detalhado:', err.sqlMessage || err);
-            return res.status(500).json({ mensagem: "Erro ao criar usuário.", erro: err });
-          }
-          res.status(201).json({ mensagem: "Usuário criado com sucesso." });
-        });
-      });
-    });
-  });
 }
 
 async function postLoginUsuario(req, res) {
-  const { username, senha } = req.body;
+  try {
+    const { username, senha } = req.body;
 
-  if (!username || !senha) {
-    return res.status(400).json({ mensagem: "Preencha usuário/email e senha." });
-  }
-
-  // Tenta buscar por username primeiro
-  getUsuarioPorUsername(username, (err, result) => {
-    if (err) return res.status(500).json({ mensagem: "Erro ao buscar usuário.", erro: err });
-
-    if (result.length === 0) {
-      // Se não achou por username, tenta por email
-      getUsuarioPorEmail(username, (err, resultEmail) => {
-        if (err) return res.status(500).json({ mensagem: "Erro ao buscar por email.", erro: err });
-        if (resultEmail.length === 0) return res.status(400).json({ mensagem: "Usuário não encontrado." });
-
-        autenticarUsuario(resultEmail[0], senha, res);
-      });
-    } else {
-      autenticarUsuario(result[0], senha, res);
+    if (!username || !senha) {
+      return res.status(400).json({ mensagem: "Preencha usuário/email e senha." });
     }
-  });
-}
 
-function autenticarUsuario(usuario, senha, res) {
-  bcrypt.compare(senha, usuario.senha, (err, senhaCorreta) => {
-    if (err) return res.status(500).json({ mensagem: "Erro ao verificar senha.", erro: err });
+    let usuario = null;
+
+    const usuariosPorUsername = await getUsuarioPorUsername(username);
+    if (usuariosPorUsername.length > 0) {
+      usuario = usuariosPorUsername[0];
+    } else {
+      const usuariosPorEmail = await getUsuarioPorEmail(username);
+      if (usuariosPorEmail.length > 0) {
+        usuario = usuariosPorEmail[0];
+      } else {
+        return res.status(400).json({ mensagem: "Usuário não encontrado." });
+      }
+    }
+
+    const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
     if (!senhaCorreta) return res.status(400).json({ mensagem: "Senha incorreta." });
 
     const token = jwt.sign(
@@ -135,25 +121,26 @@ function autenticarUsuario(usuario, senha, res) {
     );
 
     res.json({
+      mensagem: "Login realizado com sucesso.",
       token,
       usuario: {
         id: usuario.id,
-        nome_exibicao: usuario.nome_exibicao,
         username: usuario.username,
+        nome_exibicao: usuario.nome_exibicao,
         email: usuario.email,
-        biografia: usuario.biografia,
-        imagem: usuario.imagem,
-        data_nascimento: usuario.data_nascimento,
-        emoji: usuario.emoji // incluir emoji se tiver
       }
     });
-  });
+
+  } catch (err) {
+    console.error('Erro no login:', err);
+    res.status(500).json({ mensagem: "Erro interno no login.", erro: err.message });
+  }
 }
 
 module.exports = {
   getUsuarios,
   getMeuPerfil,
-  putAtualizarPerfil,  // exporta a função nova
+  putAtualizarPerfil,
   postCadastroUsuario,
   postLoginUsuario,
 };

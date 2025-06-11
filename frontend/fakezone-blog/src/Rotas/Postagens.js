@@ -4,6 +4,7 @@ import Categorias from "./Categorias";
 
 function Postagens() {
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
+
   const [mostrarForm, setMostrarForm] = useState(false);
   const [imagemSelecionada, setImagemSelecionada] = useState('');
   const [categorias, setCategorias] = useState([]);
@@ -13,8 +14,12 @@ function Postagens() {
   const [posts, setPosts] = useState([]);
   const [titulo, setTitulo] = useState('');
   const [conteudo, setConteudo] = useState('');
-  const [usuarioId, setUsuarioId] = useState(1); // futuramente: pegar do login
-  const [humorId, setHumorId] = useState(1); // futuramente: selecionar no form
+  const [usuarioId, setUsuarioId] = useState(1); 
+  const [humorId, setHumorId] = useState(1);
+  const [moods, setMoods] = useState([]);
+  const [dropdownHumorAberto, setDropdownHumorAberto] = useState(false);
+  const dropdownHumorRef = useRef(null);
+
 
 
   useEffect(() => {
@@ -48,7 +53,8 @@ function Postagens() {
       try {
         const resposta = await fetch("http://localhost:8000/api/categorias");
         const dados = await resposta.json();
-        setCategorias(dados);  // agora isso é [{id: 1, nome: "Leituras"}, ...]
+        setCategorias(dados);
+        console.log("Categorias recebidas:", dados);
       } catch (erro) {
         console.error("Erro ao buscar categorias:", erro);
       }
@@ -62,7 +68,8 @@ function Postagens() {
       try {
         const resposta = await fetch('http://localhost:8000/api/postagens');
         const dados = await resposta.json();
-        setPosts(dados);
+        console.log("Posts recebidos:", dados);
+        setPosts(Array.isArray(dados) ? dados : []);
       } catch (erro) {
         console.error("Erro ao buscar posts:", erro);
       }
@@ -71,11 +78,23 @@ function Postagens() {
     fetchPosts();
   }, []);
 
+
+ 
+useEffect(() => {
+  fetch('http://localhost:8000/api/moods')
+    .then(res => res.json())
+    .then(data => {
+      console.log('Moods recebidos:', data); 
+      setMoods(data);
+    })
+    .catch(error => console.error('Erro ao buscar moods:', error));
+}, []);
+
+
   async function handlePublicar() {
-    // pegar o token do localStorage
+
     const token = localStorage.getItem('token');
 
-    // seus checks de validação, tipo título, conteúdo...
     if (!titulo || !conteudo || !categoriaSelecionada) {
       alert("Preencha todos os campos.");
       return;
@@ -86,15 +105,16 @@ function Postagens() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // aqui envia o token no header
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           titulo,
           conteudo,
-          categorias_id: categoriaSelecionada,
+          categorias_id: categoriaSelecionada.id,
           usuarios_id: usuarioId,
           moods_id: humorId,
         }),
+
       });
 
       if (resposta.ok) {
@@ -104,6 +124,7 @@ function Postagens() {
         setTitulo('');
         setConteudo('');
         setImagemSelecionada('');
+        alert("Post publicado com sucesso!");
       } else {
         alert("Erro ao criar post.");
       }
@@ -114,10 +135,10 @@ function Postagens() {
 
   const fecharFormulario = () => setMostrarForm(false);
 
-  // Filtra os posts pela categoria selecionada
-  const postsFiltrados = categoriaSelecionada
-    ? posts.filter((post) => post.categorias_id === Number(categoriaSelecionada))
+  const postsFiltrados = categoriaSelecionada && Array.isArray(posts)
+    ? posts.filter(post => post.nome_categoria === categoriaSelecionada.nome)
     : [];
+
 
 
   return (
@@ -126,28 +147,30 @@ function Postagens() {
 
       <Container>
         <Categorias
+          categorias={categorias}
           onCategoriaClick={setCategoriaSelecionada}
           onCriarClick={() => setMostrarForm(true)}
         />
+
       </Container>
 
       {categoriaSelecionada && (
         <PostsSection>
           <FiltroInfo>
-            Posts da categoria: <strong>{categorias.find(cat => cat.id === categoriaSelecionada)?.nome || "?"}</strong>
-
+            Posts da categoria: <strong>{categoriaSelecionada.nome}</strong>
           </FiltroInfo>
 
           <PostsContainer>
             {postsFiltrados.length > 0 ? (
-              postsFiltrados.map((post) => (
+              postsFiltrados.map(post => (
                 <PostCard key={post.id}>
                   <PostConteudo>
                     <PostTitulo>{post.titulo}</PostTitulo>
                     <PostTexto>{post.conteudo}</PostTexto>
                     <PostDetalhes>
-                      Por: {post.usuario?.nome_exibicao || "Anônimo"}<br />
-                      Sentindo: {post.mood?.emoji} {post.mood?.descricao}
+                      Por: {post.nome_usuario || "Anônimo"}
+                      <br />
+                      Sentindo: {post.emoji} {post.descricao_humor}
                     </PostDetalhes>
                   </PostConteudo>
                 </PostCard>
@@ -159,13 +182,14 @@ function Postagens() {
         </PostsSection>
       )}
 
+
       {mostrarForm && (
         <BlurOverlay>
           <PopupWindow>
             <PopupHeader>
               <span>Nova Postagem</span>
               <PopupButtons>
-                <button onClick={() => alert("Minimizar...")}>_</button>
+                <button >_</button>
                 <button onClick={fecharFormulario}>X</button>
               </PopupButtons>
             </PopupHeader>
@@ -189,7 +213,58 @@ function Postagens() {
                 value={conteudo}
                 onChange={(e) => setConteudo(e.target.value)}
               />
+              <label>Se sentindo: </label>
+<div style={{ position: "relative", width: "100%" }} ref={dropdownHumorRef}>
+  <StyledButton
+    type="button"
+    onClick={() => setDropdownHumorAberto(!dropdownHumorAberto)}
+    style={{ width: "100%", textAlign: "left" }}
+  >
+    {
+      Array.isArray(moods)
+        ? (
+          moods.find(m => m.id === humorId)
+            ? `${moods.find(m => m.id === humorId).emoji} ${moods.find(m => m.id === humorId).descricao}`
+            : "Selecionar humor"
+        )
+        : "Selecionar humor"
+    }
+  </StyledButton>
 
+  {dropdownHumorAberto && (
+    <div style={{
+      position: "absolute",
+      top: "100%",
+      left: 0,
+      width: "100%",
+      backgroundColor: "#fff",
+      border: "1px solid #000",
+      zIndex: 10,
+      fontFamily: "'Press Start 2P', cursive",
+      fontSize: "12px",
+      padding: "5px",
+      maxHeight: "200px",
+      overflowY: "auto",
+    }}>
+      {moods.map(mood => (
+        <div
+          key={mood.id}
+          onClick={() => {
+            setHumorId(mood.id);
+            setDropdownHumorAberto(false);
+          }}
+          style={{
+            cursor: "pointer",
+            padding: "4px",
+            borderBottom: "1px solid #ccc",
+          }}
+        >
+          {mood.emoji} {mood.descricao}
+        </div>
+      ))}
+    </div>
+  )}
+</div>
               <label>Categoria</label>
               <div style={{ position: "relative", width: "100%" }} ref={dropdownRef}>
                 <StyledButton
@@ -197,10 +272,11 @@ function Postagens() {
                   onClick={() => setDropdownAberto(!dropdownAberto)}
                   style={{ width: "100%", textAlign: "left" }}
                 >
-                  {
-                    categorias.find(c => c.id === categoriaSelecionada)?.nome || "Selecionar categoria"
-                  }
+                  {categoriaSelecionada && categoriaSelecionada.nome
+                    ? categoriaSelecionada.nome
+                    : "Selecionar categoria"}
                 </StyledButton>
+
 
                 {dropdownAberto && (
                   <Dropdown>
@@ -208,7 +284,7 @@ function Postagens() {
                       <DropdownItem
                         key={cat.id}
                         onClick={() => {
-                          setCategoriaSelecionada(cat.id); // aqui salva o ID!
+                          setCategoriaSelecionada(cat);
                           setDropdownAberto(false);
                         }}
 
@@ -223,7 +299,6 @@ function Postagens() {
 
               </div>
 
-
               <StyledButton onClick={handlePublicar}>
                 Publicar
               </StyledButton>
@@ -231,6 +306,36 @@ function Postagens() {
           </PopupWindow>
         </BlurOverlay>
       )}
+
+      <PostsSection>
+        <FiltroInfo>📚 Todas as postagens</FiltroInfo>
+
+        <PostsContainer>
+          {posts.length > 0 ? (
+            posts.map((post) => (
+              <PostCard key={post.id}>
+                <PostConteudo>
+                  <PostTitulo>{post.titulo}</PostTitulo>
+                  <PostTexto>{post.conteudo}</PostTexto>
+                  <PostDetalhes>
+                    Por: {post.nome_exibicao|| "Anônimo"} <br />
+                    Categoria: {post.nome_categoria} <br />
+                    Se sentindo: {post.emoji} {post.descricao_humor}<br />
+                    Em: {new Date(post.data_criacao).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </PostDetalhes>
+                </PostConteudo>
+              </PostCard>
+            ))
+          ) : (
+            <SemPosts>Não há postagens ainda.</SemPosts>
+          )}
+        </PostsContainer>
+      </PostsSection>
+
     </PageWrapper>
   );
 }
@@ -274,10 +379,13 @@ const Container = styled.div`
 // Postagens
 const PostsSection = styled.section`
   margin-top: 40px;
-  max-width: 700px;
   width: 100%;
+  max-width: 1000px; /* ou maior se quiser */
+  margin-left: auto;
+  margin-right: auto;
   font-family: 'Press Start 2P', monospace;
 `;
+
 
 const FiltroInfo = styled.div`
   font-size: 12px;
@@ -290,7 +398,7 @@ const PostsContainer = styled.div`
   margin-top: 10px;
   width: 100%;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 20px;
 `;
 
@@ -302,7 +410,10 @@ const PostCard = styled.div`
   box-shadow: 2px 2px #808080;
   padding: 15px;
   border-radius: 6px;
+  width: calc(33.333% - 13.33px);
+  box-sizing: border-box;
 `;
+
 
 const PostImagem = styled.img`
   width: 120px;
@@ -316,6 +427,7 @@ const PostConteudo = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  flex: 1;
 `;
 
 const PostTitulo = styled.h3`

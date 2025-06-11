@@ -1,4 +1,3 @@
-import React from "react";
 import styled from "styled-components";
 import cover from "../../Assets/selfparking-v3.png";
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +10,7 @@ const HeadMain = () => {
 
   const handleClick = () => {
     if (usuario) {
-      navigate('/postagens'); // página para criar/desabafo do dia
+      navigate('/postagens'); 
     } else {
       navigate('/entrar');
     }
